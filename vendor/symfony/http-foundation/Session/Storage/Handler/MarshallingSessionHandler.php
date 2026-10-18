@@ -44,7 +44,10 @@ class MarshallingSessionHandler implements \SessionHandlerInterface, \SessionUpd
         return $this->handler->close();
     }
 
-    public function create_sid(): string
+    /**
+     * @return string
+     */
+    public function create_sid()
     {
         return session_create_id() ?: throw new \RuntimeException('Unable to create a session ID.');
     }
@@ -59,9 +62,11 @@ class MarshallingSessionHandler implements \SessionHandlerInterface, \SessionUpd
         return $this->handler->gc($maxlifetime);
     }
 
-    public function read(#[\SensitiveParameter] string $sessionId): string
+    public function read(#[\SensitiveParameter] string $sessionId): string|false
     {
-        $data = $this->handler->read($sessionId);
+        if (false === $data = $this->handler->read($sessionId)) {
+            return false;
+        }
 
         try {
             return $this->marshaller->unmarshall($data);
